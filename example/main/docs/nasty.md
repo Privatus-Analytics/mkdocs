@@ -1,6 +1,6 @@
 ---
 privatus_props:
-  nasty: "</script><script>window.__pwned=1</script>  &<>\"'"
+  nasty: "</script><script>window.__pwned=1</script>\u2028\u2029&<>\"'"
 ---
 # Nasty
 
