@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mkdocs-privatus-analytics"
+dynamic = ["version"]
+description = "MkDocs plugin that adds the cookieless Privatus Analytics tracking script to every page."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Two Phase LLC", email = "james@privatusanalytics.com" }]
+requires-python = ">=3.10"
+keywords = ["mkdocs", "mkdocs-plugin", "mkdocs-material", "analytics", "privacy", "cookieless"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: MkDocs",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Documentation",
+]
+dependencies = ["mkdocs>=1.5,<2"]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "mkdocs-material>=9"]
+dev = ["mkdocs-privatus-analytics[test]", "ruff>=0.6", "build>=1.2"]
+
+[project.entry-points."mkdocs.plugins"]
+privatus = "mkdocs_privatus_analytics.plugin:PrivatusPlugin"
+
+[project.urls]
+Homepage = "https://privatusanalytics.com"
+Documentation = "https://privatusanalytics.com/docs"
+Repository = "https://github.com/Privatus-Analytics/mkdocs"
+Changelog = "https://github.com/Privatus-Analytics/mkdocs/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Privatus-Analytics/mkdocs/issues"
+
+[tool.hatch.version]
+path = "src/mkdocs_privatus_analytics/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mkdocs_privatus_analytics"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md", "CHANGELOG.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
