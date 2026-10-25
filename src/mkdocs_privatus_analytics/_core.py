@@ -211,13 +211,19 @@ def _inline(code: str, nonce: str | None) -> str:
     return f"{opening}{code}</script>"
 
 
-def render_tag(settings: Settings, props: Mapping[str, Any] | None = None) -> str:
+def off_tag(settings: Settings) -> str:
+    """What prints when the tag is off: the queue stub alone (when queue_stub is on), else ""."""
+    return _inline(QUEUE_STUB, settings.nonce) if settings.queue_stub is True else ""
+
+
+def render_tag(settings: Settings, props: Mapping[str, Any] | None = None, enabled: bool = True) -> str:
     """The full HTML: queue stub (optional), page props script (when there are props), tracker tag.
 
-    Returns "" without a site id. Whether the tag is on at all is the caller's job.
+    When the tag is off (enabled is False, or there is no site id) only the queue stub prints, and
+    only when queue_stub is on. Then `privatus.track` calls queue up and never throw.
     """
-    if settings.resolved_site_id() is None:
-        return ""
+    if not enabled or settings.resolved_site_id() is None:
+        return off_tag(settings)
     props_json = page_props_json(props)
     parts = []
     if settings.queue_stub is True:

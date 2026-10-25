@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ page.title }}</title>
+{%- if config.extra.off_markers %}
+<meta name="privatus-off-start">{{ privatus_analytics(page) }}<meta name="privatus-off-end">
+{%- endif %}
+</head>
+<body>
+{{ page.content }}
+</body>
+</html>

@@ -10,7 +10,7 @@ from mkdocs.config import base
 from mkdocs.config import config_options as c
 from mkdocs.plugins import BasePlugin
 
-from ._core import SPA_MODES, Settings, inject, merge_props, render_tag
+from ._core import SPA_MODES, Settings, inject, merge_props, off_tag, render_tag
 
 log = logging.getLogger("mkdocs.plugins.privatus")
 
@@ -72,14 +72,15 @@ class PrivatusPlugin(BasePlugin[PrivatusConfig]):
 
     def tag(self, page: Any = None) -> str:
         """The HTML for one page: the site props merged with the page's `privatus_props` front matter."""
-        if not self.is_enabled():
-            return ""
         settings = self.settings()
+        if not self.is_enabled():
+            # Off: only the queue stub (when queue_stub is on), so privatus.track calls never throw.
+            return off_tag(settings)
         if settings.resolved_site_id() is None:
             if not self._warned:
                 log.info("privatus: no site_id (and no PRIVATUS_SITE_ID), so no tag was added.")
                 self._warned = True
-            return ""
+            return off_tag(settings)
         meta = getattr(page, "meta", None) or {}
         page_props = meta.get("privatus_props") if isinstance(meta.get("privatus_props"), dict) else None
         return render_tag(settings, merge_props(self.config.props, page_props))

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from mkdocs_privatus_analytics import _core
 from mkdocs_privatus_analytics.plugin import PrivatusPlugin
 
 TAG = '<script defer src="https://privatusstats.com/js/pa.js" data-site="pa_TEST123456"'
@@ -151,3 +152,31 @@ def test_enabled_true_turns_it_on_for_serve():
     plugin.load_config({"site_id": "pa_TEST123456", "enabled": True})
     plugin.on_startup(command="serve", dirty=False)
     assert TAG in plugin.tag()
+
+
+STUB = "<script>window.privatus=window.privatus||{q:[]};"
+
+
+def test_off_with_the_queue_stub_adds_only_the_stub(tmp_path):
+    plugin = (
+        "- privatus:\n    site_id: pa_TEST123456\n    enabled: false\n    queue_stub: true\n"
+        "    props:\n      plan: pro\n"
+    )
+    head = (build(tmp_path, plugin) / "index.html").read_text().split("</head>")[0]
+    assert head.count(STUB) == 1
+    assert "/js/pa.js" not in head
+    assert "privatusPageProps" not in head
+
+
+def test_serve_with_the_queue_stub_gets_only_the_stub():
+    plugin = PrivatusPlugin()
+    plugin.load_config({"site_id": "pa_TEST123456", "queue_stub": True, "nonce": "n1", "props": {"plan": "pro"}})
+    plugin.on_startup(command="serve", dirty=False)
+    assert plugin.tag() == '<script nonce="n1">' + _core.QUEUE_STUB + "</script>"
+
+
+def test_no_site_id_with_the_queue_stub_gets_only_the_stub():
+    plugin = PrivatusPlugin()
+    plugin.load_config({"queue_stub": True, "enabled": True})
+    plugin.on_startup(command="build", dirty=False)
+    assert plugin.tag() == "<script>" + _core.QUEUE_STUB + "</script>"

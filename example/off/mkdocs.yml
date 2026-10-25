@@ -1,0 +1,18 @@
+# /off: the tag forced off with the queue stub on. The theme prints the template
+# function between two marker tags, so auto_inject is off here.
+site_name: "Off"
+theme:
+  name: null
+  custom_dir: ../theme
+extra:
+  off_markers: true
+plugins:
+  - privatus:
+      enabled: false
+      auto_inject: false
+      queue_stub: true
+      props:
+        plan: pro
+        role: admin
+        beta: true
+        seats: 3

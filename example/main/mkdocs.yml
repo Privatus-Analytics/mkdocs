@@ -1,0 +1,18 @@
+# /, /event, /nasty and /auto. The plugin adds the tag before </head> of every page
+# (auto_inject is on by default). The site id and script host come from
+# PRIVATUS_SITE_ID and PRIVATUS_SCRIPT_HOST.
+site_name: Privatus conformance
+theme:
+  name: null
+  custom_dir: ../theme
+markdown_extensions:
+  - attr_list
+plugins:
+  - privatus:
+      enabled: true
+      queue_stub: true
+      props:
+        plan: pro
+        role: admin
+        beta: true
+        seats: 3

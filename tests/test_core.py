@@ -156,3 +156,19 @@ def test_inject_before_head_once():
 def test_inject_still_adds_when_the_snippet_is_only_shown_in_the_body():
     page = "<html><head></head><body><code>/js/pa.js</code></body></html>"
     assert BASIC in inject(page, BASIC)
+
+
+STUB = f"<script>{_core.QUEUE_STUB}</script>"
+
+
+def test_off_with_the_queue_stub_prints_only_the_stub_with_the_nonce():
+    settings = Settings(site_id="pa_X", queue_stub=True, nonce="n1")
+    assert render_tag(settings, {"plan": "pro"}, enabled=False) == f'<script nonce="n1">{_core.QUEUE_STUB}</script>'
+
+
+def test_off_without_the_queue_stub_prints_nothing():
+    assert render_tag(Settings(site_id="pa_X"), {"plan": "pro"}, enabled=False) == ""
+
+
+def test_no_site_id_with_the_queue_stub_prints_only_the_stub():
+    assert render_tag(Settings(queue_stub=True), {"plan": "pro"}) == STUB
