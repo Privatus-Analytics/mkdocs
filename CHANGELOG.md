@@ -4,7 +4,10 @@
 
 - With `queue_stub: true`, the `{{ privatus_analytics(page) }}` template function now prints the queue stub
   and nothing else when the tag is off (`mkdocs serve`, `enabled: false` or no site id), so `privatus.track`
-  calls never fail. Before, it printed nothing. The automatic step still adds nothing when the tag is off.
+  calls never fail. Before, it printed nothing.
+- With `queue_stub: true`, the automatic step now also adds the queue stub alone to every page when the tag
+  is off (no tracker, no page props script). A page that already prints the stub with the template function
+  does not get a second one. With `queue_stub: false` nothing is added, as before.
 - `example/`: a tiny site for the Privatus conformance tests, built with the plugin and served by nginx.
 
 ## 1.0.0 - 2026-10-25

@@ -235,12 +235,21 @@ def render_tag(settings: Settings, props: Mapping[str, Any] | None = None, enabl
 
 
 _HEAD_CLOSE = re.compile(r"</head>", re.IGNORECASE)
+# A real queue stub script (with or without a nonce). Shown as text in a code block,
+# the "<script" is escaped, so it does not match.
+_STUB_SCRIPT = re.compile(r"<script\b[^>]*>" + re.escape(QUEUE_STUB[:40]))
 
 
 def inject(page_html: str, tag_html: str) -> str:
-    """Puts the tag just before the first </head>. Leaves pages without a head, or with the tag, alone."""
+    """Puts the tag just before the first </head>. Leaves pages without a head, or with the tag, alone.
+
+    The queue stub alone (the tag is off) is skipped when the page already prints a stub anywhere,
+    for example from the template function, so a page never gets two.
+    """
     match = _HEAD_CLOSE.search(page_html)
     # Only the head is checked for the tag, so a page that shows the snippet as text still gets it.
     if not tag_html or match is None or MARKER in page_html[: match.start()]:
+        return page_html
+    if MARKER not in tag_html and _STUB_SCRIPT.search(page_html):
         return page_html
     return f"{page_html[: match.start()]}{tag_html}\n{page_html[match.start() :]}"

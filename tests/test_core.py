@@ -172,3 +172,20 @@ def test_off_without_the_queue_stub_prints_nothing():
 
 def test_no_site_id_with_the_queue_stub_prints_only_the_stub():
     assert render_tag(Settings(queue_stub=True), {"plan": "pro"}) == STUB
+
+
+def test_inject_adds_the_stub_alone_once():
+    page = "<html><head><title>x</title></head><body></body></html>"
+    out = inject(page, STUB)
+    assert out == f"<html><head><title>x</title>{STUB}\n</head><body></body></html>"
+    assert inject(out, STUB) == out
+
+
+def test_inject_skips_the_stub_when_the_page_already_prints_it_with_a_nonce():
+    page = f'<html><head></head><body><script nonce="n1">{_core.QUEUE_STUB}</script></body></html>'
+    assert inject(page, STUB) == page
+
+
+def test_inject_still_adds_the_stub_when_it_is_only_shown_as_text():
+    page = f"<html><head></head><body><pre>&lt;script&gt;{_core.QUEUE_STUB}&lt;/script&gt;</pre></body></html>"
+    assert inject(page, STUB).count(STUB) == 1

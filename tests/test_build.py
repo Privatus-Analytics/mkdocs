@@ -157,14 +157,69 @@ def test_enabled_true_turns_it_on_for_serve():
 STUB = "<script>window.privatus=window.privatus||{q:[]};"
 
 
-def test_off_with_the_queue_stub_the_automatic_step_adds_nothing(tmp_path):
+PAGES = ("index.html", "guide/index.html", "404.html")
+
+
+def test_off_with_the_queue_stub_the_automatic_step_adds_only_the_stub(tmp_path):
     plugin = (
         "- privatus:\n    site_id: pa_TEST123456\n    enabled: false\n    queue_stub: true\n"
         "    props:\n      plan: pro\n"
     )
-    head = (build(tmp_path, plugin) / "index.html").read_text().split("</head>")[0]
-    assert "window.privatus" not in head
-    assert "/js/pa.js" not in head
+    site = build(tmp_path, plugin)
+    for page in PAGES:
+        html = (site / page).read_text()
+        head = html.split("</head>")[0]
+        assert head.count(STUB) == 1, page
+        assert html.count("window.privatus=window.privatus") == 1, page
+        assert "/js/pa.js" not in head, page
+        assert "privatusPageProps" not in html, page
+        assert "data-props" not in html, page
+
+
+def test_serve_with_the_queue_stub_the_automatic_step_adds_only_the_stub():
+    plugin = PrivatusPlugin()
+    plugin.load_config({"site_id": "pa_TEST123456", "queue_stub": True, "props": {"plan": "pro"}})
+    plugin.on_startup(command="serve", dirty=False)
+    page = "<html><head><title>T</title></head><body></body></html>"
+    out = plugin.on_post_page(page, page=None, config=None)
+    assert out == "<html><head><title>T</title><script>" + _core.QUEUE_STUB + "</script>\n</head><body></body></html>"
+    assert plugin.on_post_template(page, template_name="404.html", config=None) == out
+
+
+def test_no_site_id_with_the_queue_stub_the_automatic_step_adds_only_the_stub(tmp_path):
+    site = build(tmp_path, "- privatus:\n    queue_stub: true\n")
+    for page in PAGES:
+        head = (site / page).read_text().split("</head>")[0]
+        assert head.count(STUB) == 1, page
+        assert "/js/pa.js" not in head, page
+
+
+def test_off_without_the_queue_stub_the_automatic_step_adds_nothing(tmp_path):
+    plugin = "- privatus:\n    site_id: pa_TEST123456\n    enabled: false\n    props:\n      plan: pro\n"
+    site = build(tmp_path, plugin)
+    for page in PAGES:
+        html = (site / page).read_text()
+        assert "window.privatus" not in html, page
+        assert "/js/pa.js" not in html.split("</head>")[0], page
+
+
+def test_off_with_the_queue_stub_and_the_template_function_adds_one_stub(tmp_path):
+    overrides = tmp_path / "overrides"
+    overrides.mkdir(parents=True)
+    (overrides / "main.html").write_text(
+        '{% extends "base.html" %}\n{% block extrahead %}{{ privatus_analytics(page) }}{% endblock %}\n'
+    )
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "index.md").write_text("# Home\n")
+    (tmp_path / "mkdocs.yml").write_text(
+        "site_name: T\ntheme:\n  name: mkdocs\n  custom_dir: overrides\n"
+        "plugins:\n  - privatus:\n      site_id: pa_TEST123456\n      enabled: false\n      queue_stub: true\n"
+    )
+    subprocess.run([sys.executable, "-m", "mkdocs", "build", "-q"], cwd=tmp_path, check=True)
+    html = (tmp_path / "site" / "index.html").read_text()
+    assert html.count("window.privatus=window.privatus") == 1
+    assert "/js/pa.js" not in html.split("</head>")[0]
 
 
 def test_off_with_the_queue_stub_the_template_function_prints_only_the_stub(tmp_path):
