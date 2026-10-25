@@ -157,12 +157,31 @@ def test_enabled_true_turns_it_on_for_serve():
 STUB = "<script>window.privatus=window.privatus||{q:[]};"
 
 
-def test_off_with_the_queue_stub_adds_only_the_stub(tmp_path):
+def test_off_with_the_queue_stub_the_automatic_step_adds_nothing(tmp_path):
     plugin = (
         "- privatus:\n    site_id: pa_TEST123456\n    enabled: false\n    queue_stub: true\n"
         "    props:\n      plan: pro\n"
     )
     head = (build(tmp_path, plugin) / "index.html").read_text().split("</head>")[0]
+    assert "window.privatus" not in head
+    assert "/js/pa.js" not in head
+
+
+def test_off_with_the_queue_stub_the_template_function_prints_only_the_stub(tmp_path):
+    overrides = tmp_path / "overrides"
+    overrides.mkdir(parents=True)
+    (overrides / "main.html").write_text(
+        '{% extends "base.html" %}\n{% block extrahead %}{{ privatus_analytics(page) }}{% endblock %}\n'
+    )
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "index.md").write_text("# Home\n")
+    (tmp_path / "mkdocs.yml").write_text(
+        "site_name: T\ntheme:\n  name: mkdocs\n  custom_dir: overrides\n"
+        "plugins:\n  - privatus:\n      site_id: pa_TEST123456\n      enabled: false\n      queue_stub: true\n"
+    )
+    subprocess.run([sys.executable, "-m", "mkdocs", "build", "-q"], cwd=tmp_path, check=True)
+    head = (tmp_path / "site" / "index.html").read_text().split("</head>")[0]
     assert head.count(STUB) == 1
     assert "/js/pa.js" not in head
     assert "privatusPageProps" not in head

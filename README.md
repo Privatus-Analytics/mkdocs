@@ -62,7 +62,7 @@ every page, including the 404 page:
 The plugin adds no tag when there is no site id. It writes a note to the
 build log, which does not break `--strict` builds. It also adds no tag while
 you run `mkdocs serve`, so your own visits while you write are never counted.
-(With `queue_stub: true` it still adds the small queue stub, see below.)
+(The template function still prints the small queue stub then, see below.)
 Pages that already have the tag in their head are left alone.
 
 ### Or place the tag yourself
@@ -299,9 +299,13 @@ privatus.track("Feature used", { feature: "search" })
 
 If your code may run before the tracker has loaded, set `queue_stub: true`. It
 adds a tiny script before the tracker that keeps your calls in a list and
-sends them once the tracker is ready. The stub is added even when the tag is
-off (for `mkdocs serve`, with `enabled: false` or with no site id). Then your
-`privatus.track` calls never fail: they wait in the list and are never sent.
+sends them once the tracker is ready. The template function
+`{{ privatus_analytics(page) }}` (see "Or place the tag yourself") prints the
+stub even when the tag is off (for `mkdocs serve`, with `enabled: false` or
+with no site id). Then your `privatus.track` calls never fail: they wait in
+the list and are never sent. The automatic step adds nothing at all when the
+tag is off, so use the template function if you want the stub while you
+write.
 
 ### See the results
 

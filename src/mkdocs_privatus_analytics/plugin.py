@@ -90,13 +90,18 @@ class PrivatusPlugin(BasePlugin[PrivatusConfig]):
         env.globals["privatus_analytics"] = lambda page=None: Markup(self.tag(page))
         return env
 
+    def will_print(self) -> bool:
+        """Whether the tag is on: enabled and with a site id."""
+        return self.is_enabled() and self.settings().resolved_site_id() is not None
+
     def on_post_page(self, output: str, *, page: Any, config: Any) -> str:
-        if not self.config.auto_inject:
+        # The automatic step adds nothing when the tag is off, not even the queue stub.
+        if not self.config.auto_inject or not self.will_print():
             return output
         return inject(output, self.tag(page))
 
     def on_post_template(self, output_content: str, *, template_name: str, config: Any) -> str:
         # Static HTML templates such as 404.html are not pages, so they come through here.
-        if not self.config.auto_inject or not template_name.endswith(".html"):
+        if not self.config.auto_inject or not template_name.endswith(".html") or not self.will_print():
             return output_content
         return inject(output_content, self.tag())
